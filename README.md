@@ -1,6 +1,6 @@
 # Bookings Backend
 
-Backend API para gestión de reservas, construido con **NestJS**, **TypeORM** y **SQLite**. Actualmente permite **listar reservas**, **consultar una reserva por ID** y **crear nuevas reservas**, con validación mediante DTOs y documentación Swagger.
+Backend API para gestión de reservas, construido con **NestJS**, **TypeORM** y **SQLite**. Actualmente permite **listar reservas**, **consultar una reserva por ID**, **crear nuevas reservas** y **editar reservas existentes**, con validación mediante DTOs y documentación Swagger.
 
 ## Visión general
 
@@ -23,7 +23,8 @@ backend/
 ├─ src/
 │  ├─ appointments/
 │  │  ├─ dto/
-│  │  │  └─ create-appointment.dto.ts
+│  │  │  ├─ create-appointment.dto.ts
+│  │  │  └─ update-appointment.dto.ts
 │  │  ├─ appointment.entity.ts
 │  │  ├─ appointments.controller.ts
 │  │  ├─ appointments.module.ts
@@ -36,11 +37,12 @@ backend/
 
 ## Funcionalidades actuales
 
-La API expone un módulo `appointments` con tres endpoints principales:
+La API expone un módulo `appointments` con cuatro endpoints principales:
 
 - `GET /appointments` → devuelve el listado de reservas ordenado por fecha y hora.
 - `GET /appointments/:id` → devuelve una reserva concreta por ID.
 - `POST /appointments` → crea una nueva reserva.
+- `PATCH /appointments/:id` → actualiza parcialmente una reserva existente.
 
 La entidad `Appointment` guarda actualmente estos campos:
 
@@ -56,7 +58,7 @@ El campo `status` puede tomar estos valores:
 
 - `pending`
 - `confirmed`
-- `paid` 
+- `paid`
 
 ## Requisitos previos
 
@@ -64,7 +66,7 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
 - **Node.js 18 o superior**; el proyecto usa TypeScript y tooling moderno de NestJS.
 - **npm**
-- Git
+- **Git**
 
 Puedes comprobarlo con:
 
@@ -164,7 +166,7 @@ Abre:
 http://localhost:3000/api
 ```
 
-Desde ahí puedes probar `GET /appointments` y `POST /appointments` directamente desde el navegador. Swagger genera la documentación a partir del código y de los decoradores de Nest.
+Desde ahí puedes probar `GET /appointments`, `POST /appointments` y `PATCH /appointments/{id}` directamente desde el navegador. Swagger genera la documentación a partir del código y de los decoradores de Nest. [web:236]
 
 ### Opción 2: usar curl
 
@@ -186,6 +188,14 @@ Ver una reserva por ID:
 
 ```bash
 curl http://localhost:3000/appointments/1
+```
+
+Editar una reserva existente:
+
+```bash
+curl -X PATCH http://localhost:3000/appointments/1 \
+  -H "Content-Type: application/json" \
+  -d '{"status":"confirmed","time":"11:00"}'
 ```
 
 ### Opción 3: abrir el archivo SQLite
@@ -221,6 +231,8 @@ El DTO `CreateAppointmentDto` exige:
 - `businessId` como entero
 - `serviceName` como string
 
+El DTO `UpdateAppointmentDto` permite actualizar esos mismos campos de forma parcial.
+
 ## CORS y conexión con el frontend
 
 Si el frontend se ejecuta en otro puerto, por ejemplo `http://localhost:3001`, el backend debe permitir peticiones CORS mediante `app.enableCors(...)` en `main.ts`. NestJS ofrece esta configuración directamente sobre la aplicación.
@@ -239,7 +251,8 @@ app.enableCors({
 2. Abre Swagger en `http://localhost:3000/api`.
 3. Comprueba que `GET /appointments` responde.
 4. Crea una reserva con `POST /appointments`.
-5. Vuelve a llamar a `GET /appointments` para verificar que aparece en la lista.
+5. Edita una reserva con `PATCH /appointments/:id`.
+6. Vuelve a llamar a `GET /appointments` para verificar que los cambios aparecen en la lista.
 
 ## Problemas frecuentes
 
@@ -268,6 +281,23 @@ Revisa que el body enviado cumpla el DTO:
 
 Si `status` no coincide con el enum o si `customerId` y `businessId` no son enteros, la validación devolverá error.
 
+### Error al editar reservas
+
+Comprueba:
+
+- que el ID exista
+- que el body contenga campos válidos
+- que `status`, si se envía, sea uno de los valores permitidos
+
+Ejemplo válido:
+
+```json
+{
+  "status": "confirmed",
+  "time": "11:00"
+}
+```
+
 ### No veo datos en la base
 
 Si `GET /appointments` devuelve `[]`, simplemente significa que todavía no hay registros guardados. Crea una reserva con Swagger o curl y vuelve a consultar.
@@ -293,4 +323,4 @@ Si `GET /appointments` devuelve `[]`, simplemente significa que todavía no hay 
 
 ## Estado actual del proyecto
 
-Este backend proporciona una API sencilla y directa para trabajar con reservas, con persistencia local en SQLite, validación de entradas y documentación accesible desde Swagger.
+Este backend proporciona una API sencilla y directa para trabajar con reservas, con persistencia local en SQLite, validación de entradas, documentación accesible desde Swagger y operaciones básicas de consulta, creación y edición.
