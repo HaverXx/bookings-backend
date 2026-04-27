@@ -1,6 +1,6 @@
 # Bookings Backend
 
-Backend API para gestión de reservas, construido con **NestJS**, **TypeORM** y **SQLite**. Actualmente permite **listar reservas**, **consultar una reserva por ID**, **crear nuevas reservas** y **editar reservas existentes**, con validación mediante DTOs y documentación Swagger.
+Backend API para gestión de reservas, construido con **NestJS**, **TypeORM** y **SQLite**. Actualmente permite **listar reservas**, **consultar una reserva por ID**, **crear**, **editar** y **eliminar reservas**, con validación mediante DTOs y documentación Swagger.
 
 ## Visión general
 
@@ -37,12 +37,13 @@ backend/
 
 ## Funcionalidades actuales
 
-La API expone un módulo `appointments` con cuatro endpoints principales:
+La API expone un módulo `appointments` con cinco endpoints:
 
 - `GET /appointments` → devuelve el listado de reservas ordenado por fecha y hora.
 - `GET /appointments/:id` → devuelve una reserva concreta por ID.
 - `POST /appointments` → crea una nueva reserva.
 - `PATCH /appointments/:id` → actualiza parcialmente una reserva existente.
+- `DELETE /appointments/:id` → elimina una reserva por ID.
 
 La entidad `Appointment` guarda actualmente estos campos:
 
@@ -166,7 +167,7 @@ Abre:
 http://localhost:3000/api
 ```
 
-Desde ahí puedes probar `GET /appointments`, `POST /appointments` y `PATCH /appointments/{id}` directamente desde el navegador. Swagger genera la documentación a partir del código y de los decoradores de Nest. [web:236]
+Desde ahí puedes probar todos los endpoints directamente desde el navegador. Swagger genera la documentación a partir del código y de los decoradores de Nest.
 
 ### Opción 2: usar curl
 
@@ -190,12 +191,18 @@ Ver una reserva por ID:
 curl http://localhost:3000/appointments/1
 ```
 
-Editar una reserva existente:
+Editar una reserva:
 
 ```bash
 curl -X PATCH http://localhost:3000/appointments/1 \
   -H "Content-Type: application/json" \
   -d '{"status":"confirmed","time":"11:00"}'
+```
+
+Eliminar una reserva:
+
+```bash
+curl -X DELETE http://localhost:3000/appointments/1
 ```
 
 ### Opción 3: abrir el archivo SQLite
@@ -235,7 +242,7 @@ El DTO `UpdateAppointmentDto` permite actualizar esos mismos campos de forma par
 
 ## CORS y conexión con el frontend
 
-Si el frontend se ejecuta en otro puerto, por ejemplo `http://localhost:3001`, el backend debe permitir peticiones CORS mediante `app.enableCors(...)` en `main.ts`. NestJS ofrece esta configuración directamente sobre la aplicación.
+Si el frontend se ejecuta en otro puerto, por ejemplo `http://localhost:3001`, el backend debe permitir peticiones CORS mediante `app.enableCors(...)` en `main.ts`.
 
 Ejemplo recomendado:
 
@@ -252,7 +259,8 @@ app.enableCors({
 3. Comprueba que `GET /appointments` responde.
 4. Crea una reserva con `POST /appointments`.
 5. Edita una reserva con `PATCH /appointments/:id`.
-6. Vuelve a llamar a `GET /appointments` para verificar que los cambios aparecen en la lista.
+6. Elimina una reserva con `DELETE /appointments/:id`.
+7. Vuelve a llamar a `GET /appointments` para verificar los cambios.
 
 ## Problemas frecuentes
 
@@ -279,17 +287,9 @@ Revisa que el body enviado cumpla el DTO:
 }
 ```
 
-Si `status` no coincide con el enum o si `customerId` y `businessId` no son enteros, la validación devolverá error.
-
 ### Error al editar reservas
 
-Comprueba:
-
-- que el ID exista
-- que el body contenga campos válidos
-- que `status`, si se envía, sea uno de los valores permitidos
-
-Ejemplo válido:
+Comprueba que el ID exista y que el body contenga campos válidos:
 
 ```json
 {
@@ -297,6 +297,10 @@ Ejemplo válido:
   "time": "11:00"
 }
 ```
+
+### Error al eliminar reservas
+
+Comprueba que el ID que estás intentando eliminar existe. Si no existe, el backend devolverá un error 404.
 
 ### No veo datos en la base
 
@@ -323,4 +327,4 @@ Si `GET /appointments` devuelve `[]`, simplemente significa que todavía no hay 
 
 ## Estado actual del proyecto
 
-Este backend proporciona una API sencilla y directa para trabajar con reservas, con persistencia local en SQLite, validación de entradas, documentación accesible desde Swagger y operaciones básicas de consulta, creación y edición.
+Este backend proporciona un CRUD completo sobre reservas: listar, consultar por ID, crear, editar y eliminar, con persistencia local en SQLite, validación de entradas y documentación accesible desde Swagger.
