@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Customer } from '../customers/customer.entity';
+import { Appointment } from '../appointments/appointment.entity';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -24,8 +26,16 @@ export class Payment {
   @Column()
   appointmentId: number;
 
+  @ManyToOne(() => Appointment, (appointment) => appointment.payments)
+  @JoinColumn({ name: 'appointmentId' })
+  appointmentRelation: Appointment;
+
   @Column()
   customerId: number;
+
+  @ManyToOne(() => Customer, (customer) => customer.payments)
+  @JoinColumn({ name: 'customerId' })
+  customerRelation: Customer;
 
   @Column({
     type: 'text',
@@ -35,4 +45,7 @@ export class Payment {
 
   @Column({ nullable: true })
   notes: string;
+
+  @Column({ nullable: true })
+  customerName: string;
 }

@@ -1,4 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Business } from '../businesses/business.entity';
+import { Appointment } from '../appointments/appointment.entity';
+import { Payment } from '../payments/payment.entity';
 
 @Entity()
 export class Customer {
@@ -14,6 +17,16 @@ export class Customer {
   @Column()
   email: string;
 
-  @Column()
-  business: string;
+  @Column({ nullable: true })
+  businessId: number;
+
+  @ManyToOne(() => Business, (business) => business.customers)
+  @JoinColumn({ name: 'businessId' })
+  businessRelation: Business;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.customerRelation)
+  appointments: Appointment[];
+
+  @OneToMany(() => Payment, (payment) => payment.customerRelation)
+  payments: Payment[];
 }
