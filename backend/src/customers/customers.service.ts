@@ -20,9 +20,19 @@ export class CustomersService {
     return this.customersRepository.findOneBy({ id });
   }
 
-  create(dto: CreateCustomerDto) {
-    const customer = this.customersRepository.create(dto);
-    return this.customersRepository.save(customer);
+  async create(dto: CreateCustomerDto) {
+    const customers = await this.customersRepository.find({ select: ['id'], order: { id: 'ASC' } });
+    let newId = 1;
+    for (const c of customers) {
+      if (c.id === newId) {
+        newId++;
+      } else {
+        break;
+      }
+    }
+    const customer = this.customersRepository.create({ ...dto, id: newId });
+    await this.customersRepository.insert(customer);
+    return customer;
   }
 
   async update(id: number, dto: UpdateCustomerDto) {

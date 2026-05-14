@@ -30,8 +30,18 @@ export class BusinessesService {
   }
 
   async create(createBusinessDto: CreateBusinessDto): Promise<Business> {
-    const business = this.businessRepository.create(createBusinessDto);
-    return this.businessRepository.save(business);
+    const businesses = await this.businessRepository.find({ select: ['businessID'], order: { businessID: 'ASC' } });
+    let newId = 1;
+    for (const b of businesses) {
+      if (b.businessID === newId) {
+        newId++;
+      } else {
+        break;
+      }
+    }
+    const business = this.businessRepository.create({ ...createBusinessDto, businessID: newId });
+    await this.businessRepository.insert(business);
+    return business;
   }
 
   async update(id: number, updateBusinessDto: UpdateBusinessDto): Promise<Business> {
