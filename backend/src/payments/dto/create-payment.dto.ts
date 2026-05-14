@@ -34,4 +34,9 @@ export class CreatePaymentDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @ApiProperty({ example: 'Juan Pérez', required: false })
+  @IsString()
+  @IsOptional()
+  customerName?: string;
 }
