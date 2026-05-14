@@ -31,4 +31,5 @@ export class Appointment {
 
   @Column()
   serviceName: string;
+  businessRelation: any;
 }

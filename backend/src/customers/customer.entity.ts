@@ -16,4 +16,5 @@ export class Customer {
 
   @Column()
   business: string;
+  businessRelation: any;
 }
