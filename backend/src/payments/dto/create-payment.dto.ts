@@ -15,13 +15,15 @@ export class CreatePaymentDto {
   @IsString()
   paymentMethod: string;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 1, required: false })
   @IsInt()
-  appointmentId: number;
+  @IsOptional()
+  appointmentId?: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 1, required: false })
   @IsInt()
-  customerId: number;
+  @IsOptional()
+  customerId?: number;
 
   @ApiProperty({
     enum: PaymentStatus,

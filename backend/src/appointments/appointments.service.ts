@@ -22,9 +22,19 @@ export class AppointmentsService {
     return this.appointmentsRepository.findOneBy({ id });
   }
 
-  create(createAppointmentDto: CreateAppointmentDto) {
-    const appointment = this.appointmentsRepository.create(createAppointmentDto);
-    return this.appointmentsRepository.save(appointment);
+  async create(createAppointmentDto: CreateAppointmentDto) {
+    const appointments = await this.appointmentsRepository.find({ select: ['id'], order: { id: 'ASC' } });
+    let newId = 1;
+    for (const a of appointments) {
+      if (a.id === newId) {
+        newId++;
+      } else {
+        break;
+      }
+    }
+    const appointment = this.appointmentsRepository.create({ ...createAppointmentDto, id: newId });
+    await this.appointmentsRepository.insert(appointment);
+    return appointment;
   }
 
   async update(id: number, updateAppointmentDto: UpdateAppointmentDto) {

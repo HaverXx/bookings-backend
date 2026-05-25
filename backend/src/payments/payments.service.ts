@@ -28,9 +28,19 @@ export class PaymentsService {
     return this.paymentsRepository.find({ where: { customerId } });
   }
 
-  create(dto: CreatePaymentDto) {
-    const payment = this.paymentsRepository.create(dto);
-    return this.paymentsRepository.save(payment);
+  async create(dto: CreatePaymentDto) {
+    const payments = await this.paymentsRepository.find({ select: ['id'], order: { id: 'ASC' } });
+    let newId = 1;
+    for (const p of payments) {
+      if (p.id === newId) {
+        newId++;
+      } else {
+        break;
+      }
+    }
+    const payment = this.paymentsRepository.create({ ...dto, id: newId });
+    await this.paymentsRepository.insert(payment);
+    return payment;
   }
 
   async update(id: number, dto: UpdatePaymentDto) {

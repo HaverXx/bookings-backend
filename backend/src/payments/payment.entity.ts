@@ -23,14 +23,14 @@ export class Payment {
   @Column()
   paymentMethod: string;
 
-  @Column()
+  @Column({ nullable: true })
   appointmentId: number;
 
   @ManyToOne(() => Appointment, (appointment) => appointment.payments)
   @JoinColumn({ name: 'appointmentId' })
   appointmentRelation: Appointment;
 
-  @Column()
+  @Column({ nullable: true })
   customerId: number;
 
   @ManyToOne(() => Customer, (customer) => customer.payments)

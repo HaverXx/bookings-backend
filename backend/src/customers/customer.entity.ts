@@ -18,6 +18,9 @@ export class Customer {
   email: string;
 
   @Column({ nullable: true })
+  business: string;
+
+  @Column({ nullable: true })
   businessId: number;
 
   @ManyToOne(() => Business, (business) => business.customers)
