@@ -20,7 +20,7 @@ export class UsersService {
 
   findAll() {
     return this.usersRepository.find({
-      select: ['id', 'name', 'lastName', 'birthDate', 'email', 'createdAt'],
+      select: ['id', 'name', 'lastName', 'birthDate', 'email', 'business', 'createdAt'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -28,7 +28,7 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
-      select: ['id', 'name', 'lastName', 'birthDate', 'email', 'createdAt'],
+      select: ['id', 'name', 'lastName', 'birthDate', 'email', 'business', 'createdAt'],
     });
     if (!user) throw new NotFoundException(`No existe el usuario con id ${id}`);
     return user;
@@ -43,7 +43,12 @@ export class UsersService {
     const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Ya existe un usuario con ese correo electrónico');
 
-    const user = this.usersRepository.create(dto);
+    const business = dto.business ??
+      (dto.email.toLowerCase().startsWith('admin@') || dto.name.toLowerCase() === 'admin'
+        ? 'admin'
+        : undefined);
+
+    const user = this.usersRepository.create({ ...dto, business });
     const saved = await this.usersRepository.save(user);
     // Return without password
     const { password: _, ...result } = saved;
@@ -62,6 +67,15 @@ export class UsersService {
   async update(id: number, dto: UpdateUserDto) {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) throw new NotFoundException(`No existe el usuario con id ${id}`);
+
+    if (dto.business === undefined &&
+      ((dto.email && dto.email.toLowerCase().startsWith('admin@')) ||
+        (dto.name && dto.name.toLowerCase() === 'admin') ||
+        user.email.toLowerCase().startsWith('admin@') ||
+        user.name.toLowerCase() === 'admin')) {
+      dto.business = 'admin';
+    }
+
     Object.assign(user, dto);
     const saved = await this.usersRepository.save(user);
     const { password: _, ...result } = saved;

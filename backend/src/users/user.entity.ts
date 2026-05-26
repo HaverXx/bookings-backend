@@ -20,6 +20,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ nullable: true })
+  business: string;
+
   @CreateDateColumn()
   createdAt: Date;
 }

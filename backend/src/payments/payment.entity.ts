@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Customer } from '../customers/customer.entity';
 import { Appointment } from '../appointments/appointment.entity';
+import { Business } from '../businesses/business.entity';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -36,6 +37,13 @@ export class Payment {
   @ManyToOne(() => Customer, (customer) => customer.payments)
   @JoinColumn({ name: 'customerId' })
   customerRelation: Customer;
+
+  @Column({ nullable: true })
+  businessId: number;
+
+  @ManyToOne(() => Business, (business) => business.payments, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'businessId' })
+  businessRelation: Business;
 
   @Column({
     type: 'text',

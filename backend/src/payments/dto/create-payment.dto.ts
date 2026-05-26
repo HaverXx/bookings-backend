@@ -25,6 +25,11 @@ export class CreatePaymentDto {
   @IsOptional()
   customerId?: number;
 
+  @ApiProperty({ example: 1, required: false })
+  @IsInt()
+  @IsOptional()
+  businessId?: number;
+
   @ApiProperty({
     enum: PaymentStatus,
     example: PaymentStatus.COMPLETED,
