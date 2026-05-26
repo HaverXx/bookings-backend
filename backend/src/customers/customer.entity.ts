@@ -23,7 +23,7 @@ export class Customer {
   @Column({ nullable: true })
   businessId: number;
 
-  @ManyToOne(() => Business, (business) => business.customers)
+  @ManyToOne(() => Business, (business) => business.customers, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'businessId' })
   businessRelation: Business;
 

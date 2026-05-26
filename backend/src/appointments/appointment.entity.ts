@@ -36,7 +36,7 @@ export class Appointment {
   @Column()
   businessId: number;
 
-  @ManyToOne(() => Business, (business) => business.appointments)
+  @ManyToOne(() => Business, (business) => business.appointments, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'businessId' })
   businessRelation: Business;
 
