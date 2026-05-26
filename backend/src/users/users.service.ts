@@ -35,9 +35,9 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto) {
-    // Only @admin.com emails allowed
-    if (!dto.email.toLowerCase().endsWith('@admin.com')) {
-      throw new BadRequestException('Solo se permiten correos de dominio @admin.com');
+    // do not allow emails ending with @admin.com
+    if (dto.email.toLowerCase().endsWith('@admin.com')) {
+      throw new BadRequestException('No se permiten correos de dominio @admin.com');
     }
 
     const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
