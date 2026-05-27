@@ -10,13 +10,31 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Business } from '../businesses/business.entity';
+
+const EMAIL_RESTRICTED_TOKEN = '@admin';
+const BUSINESS_RESTRICTED_TOKEN = 'admin';
+const EMAIL_RESTRICTED_MESSAGE = "No se permite usar '@admin' en el correo electrónico";
+const BUSINESS_RESTRICTED_MESSAGE = "No se permite usar 'admin' en el nombre del negocio";
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Business)
+    private readonly businessRepository: Repository<Business>,
   ) {}
+
+  private validateRestrictedValues(email?: string, business?: string) {
+    if (email && email.toLowerCase().includes(EMAIL_RESTRICTED_TOKEN)) {
+      throw new BadRequestException(EMAIL_RESTRICTED_MESSAGE);
+    }
+
+    if (business && business.toLowerCase().includes(BUSINESS_RESTRICTED_TOKEN)) {
+      throw new BadRequestException(BUSINESS_RESTRICTED_MESSAGE);
+    }
+  }
 
   findAll() {
     return this.usersRepository.find({
@@ -35,20 +53,26 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto) {
-    // do not allow emails ending with @admin.com
-    if (dto.email.toLowerCase().endsWith('@admin.com')) {
-      throw new BadRequestException('No se permiten correos de dominio @admin.com');
-    }
+    this.validateRestrictedValues(dto.email, dto.business);
 
     const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Ya existe un usuario con ese correo electrónico');
 
-    const business = dto.business ??
-      (dto.email.toLowerCase().startsWith('admin@') || dto.name.toLowerCase() === 'admin'
-        ? 'admin'
-        : undefined);
+    const normalizedBusinessName = dto.business?.trim();
+    if (normalizedBusinessName) {
+      const existingBusiness = await this.businessRepository.findOne({
+        where: { name: normalizedBusinessName },
+      });
 
-    const user = this.usersRepository.create({ ...dto, business });
+      if (!existingBusiness) {
+        const business = this.businessRepository.create({ name: normalizedBusinessName });
+        await this.businessRepository.save(business);
+      }
+
+      dto.business = normalizedBusinessName;
+    }
+
+    const user = this.usersRepository.create(dto);
     const saved = await this.usersRepository.save(user);
     // Return without password
     const { password: _, ...result } = saved;
@@ -68,13 +92,7 @@ export class UsersService {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) throw new NotFoundException(`No existe el usuario con id ${id}`);
 
-    if (dto.business === undefined &&
-      ((dto.email && dto.email.toLowerCase().startsWith('admin@')) ||
-        (dto.name && dto.name.toLowerCase() === 'admin') ||
-        user.email.toLowerCase().startsWith('admin@') ||
-        user.name.toLowerCase() === 'admin')) {
-      dto.business = 'admin';
-    }
+    this.validateRestrictedValues(dto.email, dto.business);
 
     Object.assign(user, dto);
     const saved = await this.usersRepository.save(user);
