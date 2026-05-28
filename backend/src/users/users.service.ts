@@ -65,8 +65,11 @@ export class UsersService {
       });
 
       if (!existingBusiness) {
-        const business = this.businessRepository.create({ name: normalizedBusinessName });
+        const business = this.businessRepository.create({ name: normalizedBusinessName, email: dto.email });
         await this.businessRepository.save(business);
+      } else if (!existingBusiness.email) {
+        existingBusiness.email = dto.email;
+        await this.businessRepository.save(existingBusiness);
       }
 
       dto.business = normalizedBusinessName;

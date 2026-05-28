@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Business } from './business.entity';
+import { User } from '../users/user.entity';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 
@@ -10,12 +11,30 @@ export class BusinessesService {
   constructor(
     @InjectRepository(Business)
     private readonly businessRepository: Repository<Business>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async findAll(): Promise<Business[]> {
-    return this.businessRepository.find({
+    const businesses = await this.businessRepository.find({
       relations: ['customers', 'appointments'],
     });
+
+    // Backfill missing contact emails from the users table
+    for (const business of businesses) {
+      if (!business.email) {
+        const user = await this.usersRepository.findOne({
+          where: { business: business.name },
+          select: ['email'],
+        });
+        if (user) {
+          business.email = user.email;
+          await this.businessRepository.save(business);
+        }
+      }
+    }
+
+    return businesses;
   }
 
   async findOne(id: number): Promise<Business> {
