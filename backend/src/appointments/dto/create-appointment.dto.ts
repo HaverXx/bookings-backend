@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { AppointmentStatus } from '../appointment.entity';
 
 export class CreateAppointmentDto {
@@ -29,4 +29,14 @@ export class CreateAppointmentDto {
   @ApiProperty({ example: 'Corte de pelo' })
   @IsString()
   serviceName: string;
+
+  @ApiProperty({ example: 'Juan Pérez', required: false })
+  @IsString()
+  @IsOptional()
+  customerName?: string;
+
+  @ApiProperty({ example: 'Barbería X', required: false })
+  @IsString()
+  @IsOptional()
+  businessName?: string;
 }
