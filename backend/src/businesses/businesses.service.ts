@@ -16,20 +16,26 @@ export class BusinessesService {
   ) {}
 
   async findAll(): Promise<Business[]> {
-    const businesses = await this.businessRepository.find({
-      relations: ['customers', 'appointments'],
+    const businesses = await this.businessRepository.find();
+
+    // Fetch all users with a business to map business name -> email
+    const users = await this.usersRepository.find({
+      select: ['business', 'email'],
     });
 
-    // Backfill missing contact emails from the users table
+    const emailMap = new Map<string, string>();
+    for (const user of users) {
+      if (user.business && user.email) {
+        emailMap.set(user.business.toLowerCase(), user.email);
+      }
+    }
+
+    // Backfill missing contact emails in memory (avoiding DB writes on GET)
     for (const business of businesses) {
       if (!business.email) {
-        const user = await this.usersRepository.findOne({
-          where: { business: business.name },
-          select: ['email'],
-        });
-        if (user) {
-          business.email = user.email;
-          await this.businessRepository.save(business);
+        const email = emailMap.get(business.name.toLowerCase());
+        if (email) {
+          business.email = email;
         }
       }
     }
@@ -40,7 +46,6 @@ export class BusinessesService {
   async findOne(id: number): Promise<Business> {
     const business = await this.businessRepository.findOne({
       where: { businessID: id },
-      relations: ['customers', 'appointments'],
     });
     if (!business) {
       throw new NotFoundException(`Business with ID ${id} not found`);
