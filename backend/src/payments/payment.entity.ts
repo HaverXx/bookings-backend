@@ -27,14 +27,14 @@ export class Payment {
   @Column({ nullable: true })
   appointmentId: number;
 
-  @ManyToOne(() => Appointment, (appointment) => appointment.payments)
+  @ManyToOne(() => Appointment, (appointment) => appointment.payments, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'appointmentId' })
   appointmentRelation: Appointment;
 
   @Column({ nullable: true })
   customerId: number;
 
-  @ManyToOne(() => Customer, (customer) => customer.payments)
+  @ManyToOne(() => Customer, (customer) => customer.payments, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'customerId' })
   customerRelation: Customer;
 
