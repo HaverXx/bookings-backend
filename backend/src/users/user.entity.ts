@@ -23,6 +23,9 @@ export class User {
   @Column({ nullable: true })
   business: string;
 
+  @Column({ nullable: true })
+  businessId: number;
+
   @CreateDateColumn()
   createdAt: Date;
 }
